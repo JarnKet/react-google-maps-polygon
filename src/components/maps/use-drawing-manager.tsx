@@ -122,7 +122,10 @@ export function useDrawingManager(
 			drawingControl: true,
 			drawingControlOptions: {
 				position: google.maps.ControlPosition.TOP_CENTER,
-				drawingModes: [google.maps.drawing.OverlayType.POLYGON],
+				drawingModes: [
+					google.maps.drawing.OverlayType.POLYGON,
+					google.maps.drawing.OverlayType.MARKER,
+				],
 			},
 			polygonOptions: {
 				editable: true,
@@ -151,11 +154,32 @@ export function useDrawingManager(
 			},
 		);
 
+		// Listen for marker complete event
+		const markerListener = google.maps.event.addListener(
+			newDrawingManager,
+			"markercomplete",
+			(marker) => {
+				// If a callback was provided, call it with the marker data
+				// if (onPolygonComplete) {
+				// 	onPolygonComplete({ marker });
+				// }
+
+				const position = marker.getPosition();
+
+				const lat = position.lat();
+				const lng = position.lng();
+
+				console.log("Marked", marker);
+				console.log("Position Lat Lng:", lat, lng);
+			},
+		);
+
 		setDrawingManager(newDrawingManager);
 
 		return () => {
 			// Cleanup: remove the event listener and unset the map
 			google.maps.event.removeListener(listener);
+			google.maps.event.removeListener(markerListener);
 			newDrawingManager.setMap(null);
 		};
 	}, [drawing, map]); // Only run when `drawing` or `map` changes

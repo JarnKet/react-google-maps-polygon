@@ -60,7 +60,7 @@ const App = () => {
 	};
 
 	return (
-		<div className=" w-full h-screen overflow-hidden">
+		<div className="w-full h-screen overflow-hidden ">
 			<div className="w-[90%] h-[90%] mx-auto py-4 rounded-md shadow-md">
 				<LoadScript googleMapsApiKey={GOOGLE_MAPS_KEY}>
 					<GoogleMap
@@ -92,13 +92,13 @@ const App = () => {
 			</div>
 
 			<div
-				className="   bg-white p-2 rounded shadow w-full justify-center flex items-center gap-4"
+				className="flex items-center justify-center w-full gap-4 p-2 bg-white rounded shadow "
 				style={{ marginTop: "10px" }}
 			>
 				<button
 					type="button"
 					onClick={handleUndoLastMarker}
-					className="border p-2"
+					className="p-2 border"
 				>
 					Undo Last Marker
 				</button>
@@ -107,7 +107,7 @@ const App = () => {
 					type="button"
 					onClick={handleSavePolygon}
 					style={{ marginLeft: "10px" }}
-					className="border p-2"
+					className="p-2 border"
 				>
 					Save Polygon Area
 				</button>
