@@ -15,7 +15,6 @@ import {
 	CardContent,
 } from "@/components/ui/card";
 import { Polygon } from "@/components/maps";
-
 import {
 	Sheet,
 	SheetContent,
@@ -26,29 +25,36 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-// Icons
 import { PlusIcon } from "@radix-ui/react-icons";
-
-// Stores
 import { usePolygonStore } from "@/store/usePolygonStore";
+import type { Polygon as IPolygon } from "@/store/usePolygonStore";
+
+interface EditData {
+	name: string;
+	price: number;
+	color?: string;
+}
+
+interface LatLng {
+	lat: number;
+	lng: number;
+}
 
 const Home = () => {
 	const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-
 	const navigate = useNavigate();
 	const locationState = useGeolocation();
 	const { toast } = useToast();
+
 	const polygons = usePolygonStore((state) => state.polygons);
 	const editPolygons = usePolygonStore((state) => state.editPolygons);
 	const deletePolygon = usePolygonStore((state) => state.deletePolygon);
 	const clearAllPolygons = usePolygonStore((state) => state.clearAllPolygons);
 
-	const [open, setOpen] = useState(false); // Control drawer visibility
-	const [selectedPolygon, setSelectedPolygon] = useState(null); // Store the selected polygon's details
-
-	const [edit, setEdit] = useState(false);
-	const [editData, setEditData] = useState({
+	const [open, setOpen] = useState<boolean>(false);
+	const [selectedPolygon, setSelectedPolygon] = useState<IPolygon | null>(null);
+	const [edit, setEdit] = useState<boolean>(false);
+	const [editData, setEditData] = useState<EditData>({
 		name: "",
 		price: 0,
 	});
@@ -57,22 +63,29 @@ const Home = () => {
 		return <p>Loading... (you may need to enable permissions)</p>;
 	}
 
-	const currentLocation = {
+	const currentLocation: LatLng = {
 		lat: locationState.latitude || 0,
 		lng: locationState.longitude || 0,
 	};
 
 	// Handle Polygon Click: Set the selected polygon and open the drawer
-	const handlePolygonClick = (polygon) => {
+	const handlePolygonClick = (polygon: IPolygon) => {
 		setSelectedPolygon(polygon);
-		setEditData(polygon);
+		setEditData({
+			name: polygon.name,
+			price: polygon.price,
+			color: polygon.color,
+		});
 		setOpen(true);
 	};
 
 	const handleEditPolygon = () => {
-		const newDataSet = polygons.map((polygon) => {
+		if (!selectedPolygon) return;
+
+		const newDataSet: IPolygon[] = polygons.map((polygon) => {
 			if (polygon.name === selectedPolygon.name) {
 				return {
+					...polygon,
 					...editData,
 					coordinates: polygon.coordinates,
 				};
@@ -112,7 +125,7 @@ const Home = () => {
 							className="w-full h-[65vh]"
 							defaultCenter={currentLocation}
 							defaultZoom={13}
-							gestureHandling={"greedy"}
+							gestureHandling="greedy"
 							disableDefaultUI={true}
 						>
 							<Marker position={currentLocation} />
@@ -120,7 +133,6 @@ const Home = () => {
 							{polygons.map((polygon) => (
 								<Polygon
 									key={polygon.id}
-									// coordinates={polygon.coordinates}
 									name={polygon.name}
 									price={polygon.price}
 									onClick={() => handlePolygonClick(polygon)} // Handle polygon click
@@ -169,7 +181,7 @@ const Home = () => {
 								<Label>Name</Label>
 								<Input
 									value={editData.name}
-									onChange={(e) =>
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 										setEditData({ ...editData, name: e.target.value })
 									}
 								/>
@@ -177,24 +189,16 @@ const Home = () => {
 							<div>
 								<Label>Price</Label>
 								<Input
+									type="number"
 									value={editData.price}
-									onChange={(e) =>
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 										setEditData({ ...editData, price: Number(e.target.value) })
 									}
 								/>
 							</div>
 							<div className="space-x-4">
 								<Button onClick={handleEditPolygon}>Save</Button>
-								<Button
-									variant={"outline"}
-									onClick={() => {
-										setEdit(!edit);
-										// setEditData({
-										// 	name: "",
-										// 	price: 0,
-										// });
-									}}
-								>
+								<Button variant={"outline"} onClick={() => setEdit(!edit)}>
 									Cancel
 								</Button>
 							</div>
@@ -205,12 +209,14 @@ const Home = () => {
 							<Button
 								variant={"destructive"}
 								onClick={() => {
-									deletePolygon(selectedPolygon);
-									setOpen(false);
-									toast({
-										title: "Polygon Deleted",
-										description: "The polygon was successfully deleted.",
-									});
+									if (selectedPolygon) {
+										deletePolygon(selectedPolygon);
+										setOpen(false);
+										toast({
+											title: "Polygon Deleted",
+											description: "The polygon was successfully deleted.",
+										});
+									}
 								}}
 							>
 								Delete Polygon

@@ -1,21 +1,43 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export const usePolygonStore = create(
+export interface LatLng {
+	lat: number;
+	lng: number;
+}
+
+export interface Polygon {
+	id: string;
+	name: string;
+	price: number;
+	coordinates: LatLng[];
+	color: string;
+}
+
+interface PolygonStore {
+	polygons: Polygon[];
+	savePolygon: (newPolygon: Polygon) => void;
+	clearAllPolygons: () => void;
+	editPolygons: (editPolygons: Polygon[]) => void;
+	deletePolygon: (deletePolygon: Polygon) => void;
+}
+
+export const usePolygonStore = create<PolygonStore>()(
 	persist(
 		(set) => ({
-			polygons: [], // Store array of polygons
+			polygons: [],
 
-			// Action to save a polygon
-			savePolygon: (newPolygon) =>
+			savePolygon: (newPolygon: Polygon) =>
 				set((state) => ({
 					polygons: [...state.polygons, newPolygon],
 				})),
 
-			// Action to clear all polygons
 			clearAllPolygons: () => set({ polygons: [] }),
-			editPolygons: (editPolygons) => set({ polygons: editPolygons }),
-			deletePolygon: (deletePolygon) =>
+
+			editPolygons: (editPolygons: Polygon[]) =>
+				set({ polygons: editPolygons }),
+
+			deletePolygon: (deletePolygon: Polygon) =>
 				set((state) => ({
 					polygons: state.polygons.filter(
 						(polygon) => polygon.name !== deletePolygon.name,
@@ -23,7 +45,7 @@ export const usePolygonStore = create(
 				})),
 		}),
 		{
-			name: "polygon-storage", // Persist polygons in local storage
+			name: "polygon-storage",
 		},
 	),
 );

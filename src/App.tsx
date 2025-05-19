@@ -1,16 +1,28 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { GoogleMap, LoadScript, Polygon, Marker } from "@react-google-maps/api";
-import axios from "axios";
+
+interface LatLng {
+	lat: number;
+	lng: number;
+}
+
+interface PolygonData {
+	name: string;
+	coordinates: LatLng[];
+	markers: LatLng[];
+}
 
 const App = () => {
 	const GOOGLE_MAPS_KEY = "AIzaSyDdxCKVSzSf5K_ys6fM7mB9eOwKTcYr_Sk";
 
-	const [polygonPaths, setPolygonPaths] = useState([]); // เก็บพิกัด Polygon
-	const [markers, setMarkers] = useState([]); // เก็บหมุดที่ปัก
+	const [polygonPaths, setPolygonPaths] = useState<LatLng[]>([]); // เก็บพิกัด Polygon
+	const [markers, setMarkers] = useState<LatLng[]>([]); // เก็บหมุดที่ปัก
 
 	// ฟังก์ชันเพิ่มหมุดเมื่อคลิกบนแผนที่
-	const handleMapClick = (event) => {
-		const newMarker = {
+	const handleMapClick = (event: google.maps.MapMouseEvent) => {
+		if (!event.latLng) return;
+
+		const newMarker: LatLng = {
 			lat: event.latLng.lat(),
 			lng: event.latLng.lng(),
 		};
@@ -29,14 +41,14 @@ const App = () => {
 	};
 
 	// ฟังก์ชันส่งข้อมูล Polygon ไปยัง API
-	const handleSavePolygon = async () => {
+	const handleSavePolygon = async (): Promise<void> => {
 		if (polygonPaths.length < 3) {
 			alert("กรุณาปักหมุดอย่างน้อย 3 จุดเพื่อสร้าง Polygon");
 			return;
 		}
 
 		try {
-			const data = {
+			const data: PolygonData = {
 				name: "My Polygon Area",
 				coordinates: polygonPaths,
 				markers: markers,
@@ -70,8 +82,8 @@ const App = () => {
 						onClick={handleMapClick}
 					>
 						{/* แสดงหมุดที่ปัก */}
-						{markers.map((marker, index) => (
-							<Marker key={index} position={marker} />
+						{markers.map((marker) => (
+							<Marker key={`${marker.lat}-${marker.lng}`} position={marker} />
 						))}
 
 						{/* แสดง Polygon ถ้ามี 3 จุดขึ้นไป */}
@@ -106,7 +118,6 @@ const App = () => {
 				<button
 					type="button"
 					onClick={handleSavePolygon}
-					style={{ marginLeft: "10px" }}
 					className="p-2 border"
 				>
 					Save Polygon Area
